@@ -10,12 +10,14 @@
 
 int g_sizing;
 
-static HWND    m_hwnd;
-static HWND    m_hwndRB;
-static HWND    m_hwndSB;
-static HWND    m_hwndView;
-static HWND    m_hwndTB;
-static HWND    m_hwndCB;
+static HWND m_hwnd;
+static HWND m_hwndRB;
+static HWND m_hwndSB;
+static HWND m_hwndView;
+static HWND m_hwndTB;
+static HWND m_hwndCB;
+static int m_width;
+static int m_height;
 
 static HWND CreateToolBar(HWND);
 static HWND CreateStatusBar(HWND);
@@ -55,7 +57,7 @@ LRESULT CALLBACK main_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
     PAINTSTRUCT ps;
     HDC hdc;
     RECT rc, rr, rs;
-    int rrHeight, sbHeight, x, y, width, height;
+    int rrHeight, sbHeight, x, y;
     char sbt[512];
 
     switch(message) {
@@ -93,6 +95,9 @@ LRESULT CALLBACK main_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         case ID_OPTIONS_COLORS:
             DialogBox(g_hinst, (LPCTSTR)IDD_COLORS, hWnd, (DLGPROC)colors_wndproc);
             break;
+        case ID_OPTIONS_GRAPHING:
+            DialogBox(g_hinst, (LPCTSTR)IDD_GRAPHOPT, hWnd, (DLGPROC)graphing_wndproc);
+            break;
         case ID_COMBOBOX:
             break;
         default:
@@ -114,11 +119,11 @@ LRESULT CALLBACK main_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         sbHeight = rs.bottom - rs.top - 1;
         x = 0;
         y = rrHeight;
-        width = rc.right - rc.left;
-        height = rc.bottom - rc.top - rrHeight - sbHeight - 1;
-        SetWindowPos(m_hwndView, HWND_TOP, x, y, width, height, SWP_SHOWWINDOW);
+        m_width = rc.right - rc.left;
+        m_height = rc.bottom - rc.top - rrHeight - sbHeight - 1;
+        SetWindowPos(m_hwndView, HWND_TOP, x, y, m_width, m_height, SWP_SHOWWINDOW);
         SendMessage(m_hwndView, WM_SIZE, wParam, lParam);
-        sprintf_s(sbt, 512, "%dx%d", width, height);
+        sprintf_s(sbt, 512, "%dx%d", m_width, m_height);
         SendMessage(m_hwndSB, SB_SETTEXT, MAKELONG(0,0), (LPARAM)sbt);
         break;
     case WM_ENTERSIZEMOVE:
@@ -147,7 +152,7 @@ LRESULT CALLBACK main_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 HWND CreateStatusBar(HWND hwndParent) {
     HWND hwndSB;
-    int a[5] = { 60, 200, 300, 500, 600 };
+    int a[5] = { 100, 200, 300 };
 
     hwndSB = CreateWindow(STATUSCLASSNAME,
                           NULL,
@@ -156,7 +161,7 @@ HWND CreateStatusBar(HWND hwndParent) {
                           hwndParent,
                           (HMENU)ID_STATUS,
                           g_hinst, NULL);
-    SendMessage(hwndSB, SB_SETPARTS, 5, (LPARAM)a);
+    SendMessage(hwndSB, SB_SETPARTS, 3, (LPARAM)a);
     return hwndSB;
 }
 
@@ -272,4 +277,17 @@ HWND CreateComboBox(HWND hwndParent) {
 
 void main_get_cbtext(TCHAR *b) {
     SendMessage(m_hwndCB, WM_GETTEXT, 100, (LPARAM)b);
+}
+
+void main_set_statusxy(int x, int y) {
+    char sbt[512];
+    double xp, yp;
+    xp = (x - m_width / 2.0) / view_get_pixelsinonex();
+    yp = - (y - m_height / 2.0) / view_get_pixelsinoney();
+    if (xp == -0.0) xp = 0.0;
+    if (yp == -0.0) yp = 0.0;
+    sprintf_s(sbt, 512, "x: %g", xp);
+    SendMessage(m_hwndSB, SB_SETTEXT, MAKELONG(1, 0), (LPARAM)sbt);
+    sprintf_s(sbt, 512, "y: %g", yp);
+    SendMessage(m_hwndSB, SB_SETTEXT, MAKELONG(2, 0), (LPARAM)sbt);
 }

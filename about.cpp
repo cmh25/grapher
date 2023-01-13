@@ -20,7 +20,7 @@ LRESULT CALLBACK about_wndproc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
         DrawIconEx(dc, 10, 10, icon, 0, 0, 0, NULL, DI_NORMAL);
         DestroyIcon(icon);
         EndPaint(hDlg, &ps);
-        break;
+        return TRUE;
     }
     return FALSE;
 }

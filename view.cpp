@@ -17,7 +17,8 @@ static HBRUSH m_brgraph;
 static TCHAR m_expression[256];
 static int m_pixelsinonex = 10;
 static int m_pixelsinoney = 10;
-static float m_accuracy = 0.001f;
+static double m_accuracy[5] = { 0.1, 0.01, 0.001, 0.0001, 0.00001 };
+static int m_accuracyi = 2;
 static int exp_index, exp_max;
 
 ATOM view_register_class() {
@@ -28,12 +29,12 @@ ATOM view_register_class() {
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = view_wndproc;
     wcex.hInstance = g_hinst;
-    wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wcex.hCursor = LoadCursor(NULL, IDC_CROSS);
     return RegisterClassEx(&wcex);
 }
 
 HWND view_create(HWND hwndParent) {
-    m_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, "view", g_szAppTitle,
+    m_hwnd = CreateWindowEx(0, "view", g_szAppTitle,
                           WS_CHILD | WS_VISIBLE,
                           0, 0, 0, 0,
                           hwndParent, NULL,
@@ -64,6 +65,9 @@ LRESULT CALLBACK view_wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         view_drawgrid();
         if(!g_sizing) view_graph_expression();
         break;
+    case WM_MOUSEMOVE:
+        main_set_statusxy(LOWORD(lParam), HIWORD(lParam));
+        break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
         break;
@@ -81,7 +85,7 @@ void view_set_paperc(COLORREF c) {
     m_brpaper = CreateSolidBrush(c);
 }
 
-COLORREF  view_get_axisc() {
+COLORREF view_get_axisc() {
     return m_craxis;
 }
 
@@ -91,7 +95,7 @@ void view_set_axisc(COLORREF c) {
     m_braxis = CreateSolidBrush(c);
 }
 
-COLORREF  view_get_dotsc() {
+COLORREF view_get_dotsc() {
     return m_crdots;
 }
 
@@ -124,6 +128,36 @@ void view_set_default_colors() {
     m_braxis = CreateSolidBrush(m_crpaper);
     m_brdots = CreateSolidBrush(m_crdots);
     m_brgraph = CreateSolidBrush(m_crgraph);
+}
+
+void view_set_default_graphopt() {
+    m_pixelsinonex = 10;
+    m_pixelsinoney = 10;
+    m_accuracyi = 2;
+}
+
+int view_get_accuracyi() {
+    return m_accuracyi;
+}
+
+void view_set_accuracyi(int a) {
+    m_accuracyi = a;
+}
+
+int view_get_pixelsinonex() {
+    return m_pixelsinonex;
+}
+
+void view_set_pixelsinonex(int x) {
+    m_pixelsinonex = x;
+}
+
+int view_get_pixelsinoney() {
+    return m_pixelsinoney;
+}
+
+void view_set_pixelsinoney(int y) {
+    m_pixelsinoney = y;
 }
 
 TCHAR* view_get_expression() {
@@ -205,6 +239,8 @@ void view_graph_expression() {
     HDC dc;
     GetClientRect(m_hwnd, &rect);
     dc = GetDC(m_hwnd);
+    double acc;
+    int x0, x1, y0, y1;
 
     startx = (0 - rect.right / 2) / m_pixelsinonex - 1;
     endx = (rect.right / 2) / m_pixelsinonex + 1;
@@ -230,14 +266,19 @@ void view_graph_expression() {
         break;
     }
 
-    for (x = startx; x <= endx; x += m_accuracy)
+    acc = m_accuracy[m_accuracyi];
+    x1 = -1;
+    y1 = -1;
+    for (x = startx; x <= endx; x += acc)
     {
         exp_index = 0;
         y = -(GetExpression(m_expression, &exp_index, &exp_max, x));
         if (y >= lowy && y <= highy)
         {
-            SetPixel(dc, (int)((x * m_pixelsinonex + rect.right / 2) + .5),
-                (int)((y * m_pixelsinoney + rect.bottom / 2) + .5), m_crgraph);
+            x0 = x1; y0 = y1;
+            x1 = (int)((x * m_pixelsinonex + rect.right / 2) + .5);
+            y1 = (int)((y * m_pixelsinoney + rect.bottom / 2) + .5);
+            if(x0!=x1 || y0!=y1) SetPixel(dc, x1, y1, m_crgraph);
         }
     }
 

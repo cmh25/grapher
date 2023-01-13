@@ -15,6 +15,11 @@
 #define IDC_BUTTON_AXIS_COLOR           1006
 #define IDC_BUTTON_DOTS_COLOR           1007
 #define IDC_BUTTON_GRAPH_COLOR          1008
+#define IDC_PIXELSINONE                 1009
+#define IDC_COMBO1                      1010
+#define IDC_PIXELSINONE2                1011
+#define IDC_SPIN2                       1012
+#define IDC_SPIN3                       1013
 #define ID_FILE_HELP                    40001
 #define ID_BUTTON_SAVE                  40002
 #define ID_BUTTON_CLEAR                 40003
@@ -29,14 +34,15 @@
 #define ID_OPTIONS_GRAPHING             40016
 #define ID_OPTIONS_COLORS               40017
 #define ID_FILE_SAVEAS                  40018
+#define IDDEFAULT                       40019
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        140
-#define _APS_NEXT_COMMAND_VALUE         40025
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_COMMAND_VALUE         40020
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
